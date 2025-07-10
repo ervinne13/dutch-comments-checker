@@ -3,7 +3,7 @@ from transformers import pipeline
 # My first iteration was using Ollama and relying only on prompt engineering (You are a spam detector blah blah blah ...).
 # This time we'll try using huggingfaces' existing models for translation, spam detection, and toxicity detection.
 translator = pipeline("translation", model="Helsinki-NLP/opus-mt-nl-en")
-spam_detector = pipeline("text-classification", model="mrm8488/bert-tiny-finetuned-sms-spam-detection")
+spam_detector = pipeline("text-classification", model="valurank/distilroberta-spam-comments-detection")
 toxicity_detector = pipeline("text-classification", model="unitary/toxic-bert")
 
 def process_comment(comment):

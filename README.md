@@ -46,10 +46,14 @@ INFO:     127.0.0.1:50020 - "POST /check HTTP/1.1" 200 OK
 
 ```
 
+You'll need to wait a bit for `INFO:     Started server process [1]` to show up though as this thing will still need to download the models used.
+
 ### Test it with:
 
 ```
-curl -X POST http://localhost:8000/check -H "Content-Type: application/json" -d '{"comment": "Je bent dom"}'
+curl -X POST http://localhost:8000/check \
+  -H "Content-Type: application/json" \
+  -d '{"comment": "Je bent dom"}'
 ```
 
 Which should output something like:
@@ -58,8 +62,8 @@ Which should output something like:
   "original": "Je bent dom",
   "translated": "You're stupid.",
   "spam": {
-    "label": "LABEL_0",
-    "score": 0.9382461905479431
+    "label": "ham",
+    "score": 0.75962233543396
   },
   "toxicity": {
     "label": "toxic",
@@ -68,11 +72,36 @@ Which should output something like:
 }
 ```
 
+Now check spam with:
+
+```
+curl -X POST http://localhost:8000/check \
+  -H "Content-Type: application/json" \
+  -d '{"comment": "Klik hier voor een gratis iPhone: http://bit.ly/iphonepromo"}'
+```
+
+Should output something like:
+
+```
+{
+  "original": "Klik hier voor een gratis iPhone: http://bit.ly/iphonepromo",
+  "translated": "Click here for a free iPhone: http://bit.ly/iphonepromo",
+  "spam": {
+    "label": "spam",
+    "score": 0.7383030652999878
+  },
+  "toxicity": {
+    "label": "toxic",
+    "score": 0.0005822975072078407
+  }
+}
+```
+
 ## Help
 
 ### Connection reset by peer
 
-Depending on your GPU (or how loaded it is), `Device set to use cuda:0` might take a few seconds to display, `INFO:     Started server process [1]` even more so (If I have Stable Diffusion running at the same time this thing takes 30-60s to startup).
+Depending on your GPU (or how loaded it is), `Device set to use cuda:0` might take a few seconds to display, `INFO:     Started server process [1]`. The models in the pipelines are being loaded here hence the delay, and there are 3 of them. This slowdown should only happen once.
 
 Just await for:
 ```
@@ -81,6 +110,13 @@ INFO:     127.0.0.1:50020 - "POST /check HTTP/1.1" 200 OK
 ```
 
 ... and it should be fine. If it takes more than 3 minutes though then start checking the logs.
+
+**Checking Cache**
+
+You may also double check if the models are properly cached by going in:
+```
+docker exec -it dutch_comment_checker bash -c "ls -l ~/.cache/huggingface/hub"
+```
 
 ### Could not select driver
 

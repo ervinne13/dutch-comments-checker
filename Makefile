@@ -1,25 +1,42 @@
 IMAGE_NAME = dutch_comment_checker
 CONTAINER_NAME = dutch_comment_checker
 PORT = 8000
-TORCH_ZIP = prebuilt-torch-271.zip
-TORCH_DIR = prebuilt-torch-271
-GDRIVE_FILE_ID = your-google-drive-file-id-here
+PREBUILT_ZIP = prebuilt-torch-271.zip
+PREBUILT_DIR = prebuilt-torch-271
+GDRIVE_URL = https://drive.google.com/uc?export=download&id=1t2UqKx8kVta0DaAj8IHPBr7AWF34wA64
 
-build: $(TORCH_ZIP)
+.PHONY: all download build run start stop clean
+
+download:
+	@echo "Checking for existing prebuilt directory..."
+	@if [ ! -d "$(PREBUILT_DIR)" ]; then \
+		echo "Downloading prebuilt torch wheel..."; \
+		curl -L -o $(PREBUILT_ZIP) "$(GDRIVE_URL)"; \
+		unzip -o $(PREBUILT_ZIP) -d $(PREBUILT_DIR); \
+	else \
+		echo "$(PREBUILT_DIR) already exists, skipping download."; \
+	fi
+
+build: download
 	docker build -t $(IMAGE_NAME) .
 
-$(TORCH_ZIP):
-	@echo "Downloading $(TORCH_ZIP) from Google Drive..."
-	@if [ ! -f $(TORCH_ZIP) ]; then \
-		curl -L -o $(TORCH_ZIP) "https://drive.google.com/uc?export=download&id=$(GDRIVE_FILE_ID)"; \
-	fi
-	@unzip -n $(TORCH_ZIP)
-
 run:
-	docker run --rm --gpus all -p $(PORT):$(PORT) --name $(CONTAINER_NAME) $(IMAGE_NAME)
+	docker run -d --gpus all \
+		--name $(CONTAINER_NAME) \
+		-v $(CURDIR)/$(PREBUILT_DIR):/app/$(PREBUILT_DIR) \
+		-v ~/.cache/huggingface:/root/.cache/huggingface \
+		-p $(PORT):$(PORT) \
+		$(IMAGE_NAME)
+
+start:
+	docker start $(CONTAINER_NAME)
 
 stop:
-	docker stop $(CONTAINER_NAME) || true
+	docker stop $(CONTAINER_NAME)
 
-zip:
-	zip -r $(IMAGE_NAME).zip Dockerfile Makefile requirements.txt $(TORCH_DIR)/ app/
+logs:
+	docker logs -f $(CONTAINER_NAME)
+
+clean:
+	docker rm -f $(CONTAINER_NAME) || true
+	rm -rf $(PREBUILT_ZIP) $(PREBUILT_DIR)

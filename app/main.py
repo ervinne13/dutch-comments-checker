@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
-from app.utils import process_comment
+from app.comment_processor import process_comment
 
 app = FastAPI()
 
