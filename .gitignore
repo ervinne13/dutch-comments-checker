@@ -3,3 +3,6 @@ prebuilt-torch-271.zip
 
 __pycache__/
 *.py[cod]
+hf_cache/
+
+.env

@@ -4,7 +4,7 @@ uvicorn
 
 # LLM Dependencies
 transformers
-torch==2.7.1 # so prebuilds will work (for local/dev only)
+# torch is intentionally omitted for Docker GPU builds
 
 # Translation
 sentencepiece
