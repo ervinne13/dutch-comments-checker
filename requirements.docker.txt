@@ -4,7 +4,7 @@ uvicorn
 
 # LLM Dependencies
 transformers
-# torch is intentionally omitted for Docker GPU builds
+# Dockercompose will handle torch manually, otherwise it can't detect GPU
 
 # Translation
 sentencepiece
