@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: dcc_dutch_comment_checker
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ${HF_CACHE_PATH:-./hf_cache}:/root/.cache/huggingface
+    environment:
+      - HF_HOME=/root/.cache/huggingface
+    depends_on:
+      - dcc_ollama
+    restart: unless-stopped
+    # Prevents that pesky Downloading torch-2.7.1-cp310-cp310-manylinux_2_28_x86_64.whl (821.2 MB)
+    # Which pretty much takes forever to build
+    # This should ensure we'll be working with the GPU version
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  dcc_ollama:
+    image: ollama/ollama:latest
+    container_name: dcc_ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    restart: unless-stopped

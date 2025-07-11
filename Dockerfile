@@ -8,12 +8,12 @@ WORKDIR /app
 RUN apt update && apt install -y python3-pip python3-dev git \
     && rm -rf /var/lib/apt/lists/*
 
-# Using a prebuilt files
-# Should reduce build time from almost 2 hours to just under 1 minute
-COPY prebuilt-torch-271/*.whl ./prebuilt-torch-271/
-COPY requirements.txt .
-RUN pip install prebuilt-torch-271/*.whl \
-    && pip install --no-cache-dir -r requirements.txt
+# Install dependencies from PyPI 
+# no prebuilt torch this time, but this thing can only run now on CUDA 12.1
+# This has to be revisited later.
+COPY requirements.docker.txt .
+RUN pip install --no-cache-dir -r requirements.docker.txt
+RUN pip install torch==2.7.1+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
 
 COPY app ./app
 

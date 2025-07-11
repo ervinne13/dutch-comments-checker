@@ -1,11 +1,12 @@
 IMAGE_NAME = dutch_comment_checker
 CONTAINER_NAME = dutch_comment_checker
 PORT = 8000
+# TODO: Move away from using prebuilt torch wheels later
 PREBUILT_ZIP = prebuilt-torch-271.zip
 PREBUILT_DIR = prebuilt-torch-271
 GDRIVE_URL = https://drive.google.com/uc?export=download&id=1t2UqKx8kVta0DaAj8IHPBr7AWF34wA64
 
-.PHONY: all download build run start stop clean
+.PHONY: all download build run start stop clean models up down logs
 
 download:
 	@echo "Checking for existing prebuilt directory..."
@@ -17,26 +18,28 @@ download:
 		echo "$(PREBUILT_DIR) already exists, skipping download."; \
 	fi
 
-build: download
-	docker build -t $(IMAGE_NAME) .
+build:
+	docker compose build
 
-run:
-	docker run -d --gpus all \
-		--name $(CONTAINER_NAME) \
-		-v $(CURDIR)/$(PREBUILT_DIR):/app/$(PREBUILT_DIR) \
-		-v ~/.cache/huggingface:/root/.cache/huggingface \
-		-p $(PORT):$(PORT) \
-		$(IMAGE_NAME)
+models:
+	docker compose run --rm --no-deps api python3 app/load_models.py
 
-start:
-	docker start $(CONTAINER_NAME)
+up:
+	docker compose up -d
 
-stop:
-	docker stop $(CONTAINER_NAME)
+down:
+	docker compose down
 
 logs:
-	docker logs -f $(CONTAINER_NAME)
+	docker compose logs -f
 
 clean:
-	docker rm -f $(CONTAINER_NAME) || true
-	rm -rf $(PREBUILT_ZIP) $(PREBUILT_DIR)
+	docker compose down --volumes --remove-orphans
+	rm -rf $(PREBUILT_ZIP) $(PREBUILT_DIR) hf_cache
+
+# Aliases
+
+
+run: up
+start: up
+stop: down

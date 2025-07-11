@@ -8,115 +8,18 @@ Without the prebuilds, `pip install --no-cache-dir -r requirements.txt` will pro
 
 Build and run with with
 ```
-make build
+make build && make models
+```
+
+Build will take a long time, about 15-20 minutes.
+- Build mostly takes time when downloading and building torch. Would take about `[+] Building 736.5s (14/14) FINISHED ` in my case.
+- Downloading the models for the classifiers takes another 5 or so minutes
+
+Once built and models downloaded, run the thing:
+```
 make run
 ```
 
-This should output something like:
-
-```
-ervinne-sodusta@ervinne-ubuntu:~/AI/Projects/dutch-comments-checker$ make run
-docker run --rm --gpus all -p 8000:8000 --name dutch_comment_checker dutch_comment_checker
-
-==========
-== CUDA ==
-==========
-
-CUDA Version 11.8.0
-
-Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-
-This container image and its contents are governed by the NVIDIA Deep Learning Container License.
-By pulling and using the container, you accept the terms and conditions of this license:
-https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
-
-A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
-
-/usr/local/lib/python3.10/dist-packages/transformers/models/marian/tokenization_marian.py:175: UserWarning: Recommended: pip install sacremoses.
-  warnings.warn("Recommended: pip install sacremoses.")
-Device set to use cuda:0
-Device set to use cuda:0
-
-Device set to use cuda:0
-INFO:     Started server process [1]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     127.0.0.1:50020 - "POST /check HTTP/1.1" 200 OK
-
-```
-
-You'll need to wait a bit for `INFO:     Started server process [1]` to show up though as this thing will still need to download the models used.
-
-### Test it with:
-
-```
-curl -X POST http://localhost:8000/check \
-  -H "Content-Type: application/json" \
-  -d '{"comment": "Je bent dom"}'
-```
-
-Which should output something like:
-```
-{
-  "original": "Je bent dom",
-  "translated": "You're stupid.",
-  "spam": {
-    "label": "ham",
-    "score": 0.75962233543396
-  },
-  "toxicity": {
-    "label": "toxic",
-    "score": 0.9870408177375793
-  }
-}
-```
-
-Now check spam with:
-
-```
-curl -X POST http://localhost:8000/check \
-  -H "Content-Type: application/json" \
-  -d '{"comment": "Klik hier voor een gratis iPhone: http://bit.ly/iphonepromo"}'
-```
-
-Should output something like:
-
-```
-{
-  "original": "Klik hier voor een gratis iPhone: http://bit.ly/iphonepromo",
-  "translated": "Click here for a free iPhone: http://bit.ly/iphonepromo",
-  "spam": {
-    "label": "spam",
-    "score": 0.7383030652999878
-  },
-  "toxicity": {
-    "label": "toxic",
-    "score": 0.0005822975072078407
-  }
-}
-```
-
-## Help
-
-### Connection reset by peer
-
-Depending on your GPU (or how loaded it is), `Device set to use cuda:0` might take a few seconds to display, `INFO:     Started server process [1]`. The models in the pipelines are being loaded here hence the delay, and there are 3 of them. This slowdown should only happen once.
-
-Just await for:
-```
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     127.0.0.1:50020 - "POST /check HTTP/1.1" 200 OK
-```
-
-... and it should be fine. If it takes more than 3 minutes though then start checking the logs.
-
-**Checking Cache**
-
-You may also double check if the models are properly cached by going in:
-```
-docker exec -it dutch_comment_checker bash -c "ls -l ~/.cache/huggingface/hub"
-```
 
 ### Could not select driver
 
