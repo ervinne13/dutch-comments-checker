@@ -2,7 +2,7 @@
 # I haven't tested but we may need a different base image for anything that can't run CUDA (CPU only)
 FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
-WORKDIR /app
+WORKDIR /dcc
 
 # Install Python and system dependencies + clean up
 RUN apt update && apt install -y python3-pip python3-dev git \

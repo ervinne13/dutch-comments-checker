@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Regenerate Postman Collection",
+      "type": "shell",
+      "command": "python scripts/generate_postman_collection.py",
+      "group": "build",
+      "presentation": {
+        "reveal": "always"
+      }
+    }
+  ]
+}

@@ -24,6 +24,9 @@ build:
 models:
 	docker compose run --rm --no-deps api python3 app/load_models.py
 
+dev:
+	docker compose run --rm -p $(PORT):$(PORT) api uvicorn app.main:app --reload --host 0.0.0.0 --port $(PORT) --reload-dir /dcc/app
+
 up:
 	docker compose up -d
 

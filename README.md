@@ -12,7 +12,7 @@ make build && make models
 ```
 
 Build will take a long time, about 15-20 minutes.
-- Build mostly takes time when downloading and building torch. Would take about `[+] Building 736.5s (14/14) FINISHED ` in my case.
+- Build mostly takes time when downloading and building torch. Would take about `[+] Building 851.8s (14/14) FINISHED` in my case.
 - Downloading the models for the classifiers takes another 5 or so minutes
 
 Once built and models downloaded, run the thing:

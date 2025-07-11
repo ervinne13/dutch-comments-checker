@@ -8,11 +8,13 @@ services:
       - "${API_PORT:-8000}:8000"
     volumes:
       - ${HF_CACHE_PATH:-./hf_cache}:/root/.cache/huggingface
+      - ./app:/dcc/app
     environment:
       - HF_HOME=/root/.cache/huggingface
     depends_on:
       - dcc_ollama
     restart: unless-stopped
+    working_dir: /dcc
     # Prevents that pesky Downloading torch-2.7.1-cp310-cp310-manylinux_2_28_x86_64.whl (821.2 MB)
     # Which pretty much takes forever to build
     # This should ensure we'll be working with the GPU version
@@ -30,3 +32,10 @@ services:
     ports:
       - "${OLLAMA_PORT:-11434}:11434"
     restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

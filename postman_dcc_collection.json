@@ -1,0 +1,73 @@
+{
+  "info": {
+    "name": "Dutch Comments Checker",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Check Comment",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject\": \"Voorbeeld artikel titel\",\n  \"context\": \"Voorbeeld context of paragraaf\",\n  \"comment\": \"Voorbeeld commentaar, kan normaal, spam, toxic, of grijs gebied zijn.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/check_comment",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "check_comment"]
+        }
+      }
+    },
+    {
+      "name": "Check Comment Auto Test",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject\": \"{{subject}}\",\n  \"context\": \"{{context}}\",\n  \"comment\": \"{{comment}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/check_comment",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "check_comment"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const expectedHam = Number(pm.iterationData.get('ham'));",
+              "const expectedSpam = Number(pm.iterationData.get('spam'));",
+              "const expectedToxic = Number(pm.iterationData.get('toxic'));",
+              "const res = pm.response.json();",
+              "const actualHam = res.spam && res.spam.label === 'ham' ? res.spam.score : 0;",
+              "const actualSpam = res.spam && res.spam.label === 'spam' ? res.spam.score : 0;",
+              "const actualToxic = Array.isArray(res.toxicity) ? (res.toxicity.find(t => t.label === 'toxic')?.score || 0) : 0;",
+              "if (expectedHam > 0) {",
+              "    pm.test('Ham score should be >= expected', function () {",
+              "        pm.expect(actualHam).to.be.at.least(expectedHam);",
+              "    });",
+              "}",
+              "if (expectedSpam > 0) {",
+              "    pm.test('Spam score should be >= expected', function () {",
+              "        pm.expect(actualSpam).to.be.at.least(expectedSpam);",
+              "    });",
+              "}",
+              "if (expectedToxic > 0) {",
+              "    pm.test(`Toxic score (${actualToxic}) should be >= expected (${expectedToxic})`, function () {",
+              "        pm.expect(actualToxic).to.be.at.least(expectedToxic);",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ],
+  "event": []
+}

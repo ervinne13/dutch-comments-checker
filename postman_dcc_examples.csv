@@ -1,0 +1,15 @@
+subject,context,comment,ham,spam,toxic
+"Ajax verliest opnieuw in de Eredivisie","Ajax speelde erg slecht deze wedstrijd.","Je hebt duidelijk geen verstand van voetbal.",0.1,0,0
+"Live goals en uitslagen","Bekijk hier de hoogtepunten van de wedstrijden.","Dit moet je zien: http://bit.ly/live-goals",0,0.7,0
+"Feyenoord wint overtuigend van PSV","Wat een geweldige goal van Til!","Goed gespeeld vandaag, verdiende overwinning.",0.7,0,0
+"Insider tips voor weddenschappen","Word lid van onze voetbal insiders groep.","Word lid op Telegram: t.me/voetbalwinnaars",0,0.7,0
+"KNVB maakt nieuwe speelschema's bekend","De wedstrijden zijn te dicht op elkaar gepland.","Typisch weer een dom besluit van de KNVB.",0.7,0,0
+"Discussie over verhoging van de btw","Sommige economen steunen de maatregel, anderen zijn kritisch.","Dit is echt een belachelijk idee, het zal alleen maar problemen veroorzaken!",0.7,0,0
+"Kabinet presenteert nieuwe plannen voor zorg","De plannen moeten de zorg betaalbaar houden.","Ja hoor, dat zal vast werken... net als de vorige keer!",0.7,0,0
+"Nederland investeert in groene energie","De overheid trekt 2 miljard euro uit voor wind- en zonne-energie.","Goed initiatief, hopelijk levert het echt iets op.",0.7,0,0
+"Nieuwe maatregelen tegen klimaatverandering aangekondigd","Ik geloof niet dat deze maatregelen echt gaan helpen.","Je mag best wat positiever zijn, het is een stap in de goede richting.",0.7,0,0
+"Kabinet wil investeren in onderwijs",,"Goed plan! Onderwijs verdient meer aandacht.",0.7,0,0
+"Spam met obvious link",,"Verdien €500 per dag vanuit huis! Meld je nu aan op onze website: www.snelgeld123.nl",0,0.7,0
+"Directe belediging","","Wat ben jij een achterlijke klootzak, rot op van dit forum.",0,0,0.7
+"Sarcastische opmerking over voetbal","Ajax speelde niet best.","Altijd hetzelfde met Ajax, groot praten maar niks presteren.",0.7,0,0
+"Ambigue comment","Soms is het lastig te bepalen of iets kwetsend is.","Dat was een interessante discussie, sommige mensen zijn wel erg direct.",0.7,0,0
