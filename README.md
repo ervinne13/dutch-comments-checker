@@ -62,3 +62,13 @@ sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 ```
 
+## Database Migrations
+
+To create a new Alembic migration with a custom message, use:
+
+```
+make migrate-revise msg="Your migration message here"
+```
+
+This will pass the message to Alembic and generate a migration file with your description.
+
