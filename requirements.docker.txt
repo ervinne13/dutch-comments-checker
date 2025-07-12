@@ -9,3 +9,9 @@ transformers
 # Translation
 sentencepiece
 sacremoses # IDK what this does actually but it fixes a warning
+
+# Database
+SQLAlchemy
+alembic
+pymysql
+python-dotenv

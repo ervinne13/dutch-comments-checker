@@ -1,5 +1,5 @@
-IMAGE_NAME = dutch_comment_checker
-CONTAINER_NAME = dutch_comment_checker
+IMAGE_NAME = dcc_api
+CONTAINER_NAME = dcc_api
 PORT = 8000
 # TODO: Move away from using prebuilt torch wheels later
 PREBUILT_ZIP = prebuilt-torch-271.zip
@@ -32,6 +32,12 @@ up:
 
 down:
 	docker compose down
+
+migrate-init:
+	docker exec -e PYTHONPATH=/dcc $(CONTAINER_NAME) alembic revision --autogenerate -m "initial"
+
+migrate:
+	docker exec -e PYTHONPATH=/dcc $(CONTAINER_NAME) alembic upgrade head
 
 logs:
 	docker compose logs -f
