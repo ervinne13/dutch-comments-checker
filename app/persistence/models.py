@@ -76,8 +76,6 @@ class Comment(Base):
     subject_id = Column(Integer, ForeignKey('subjects.id'), nullable=True)
     subject_ref = relationship("Subject", back_populates="comments")
     text = Column(Text, nullable=False)
-    translanted_text = Column(Text)
     context = Column(Text, comment="Can be used for things like the article's first paragraph, or another comment that this comment is replying to. Basically our attempt to 'contextualize' this comment")
-    translated_context = Column(Text)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())

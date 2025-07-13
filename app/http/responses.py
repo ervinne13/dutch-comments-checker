@@ -2,7 +2,7 @@ from app.ai.dto import ScreenCommentResult
 
 class CheckedCommentResponse:
     def __init__(self, screened_comment: ScreenCommentResult):
-        self.original = screened_comment.processed
+        self.original = screened_comment.text
         self.translated = None
         self.spam = None
         self.toxicity = None

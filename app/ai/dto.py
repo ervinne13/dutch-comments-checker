@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 class ScreenCommentJob(BaseModel):
     type: str
@@ -11,7 +11,10 @@ class ScreenCommentJob(BaseModel):
     output: Any
 
 class ScreenCommentResult(BaseModel):
-    processed: str
+    subject_id: Optional[str] = None
+    subject: Optional[str] = None
+    context: Optional[str] = None
+    text: str # The actual comment
     jobs: List[ScreenCommentJob]
 
     @classmethod

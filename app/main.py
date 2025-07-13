@@ -8,7 +8,7 @@ app = FastAPI()
 
 @app.post("/api/v1/check_comment")
 async def check_comment(request: CommentRequest):
-    result = screen_comment(request.comment)
+    result = screen_comment(request.comment, request.context, request.subject, request.subject_id)
     persist_comment_job.delay(result.dict())
     response = CheckedCommentResponse(result)
     return response.dict()
