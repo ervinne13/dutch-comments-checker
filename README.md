@@ -11,7 +11,7 @@ The idea is a REST based API that other projects can connect to like e-Commerce 
 
 ![API Request Flow](docs/comment-api-flow-mermaid.png)
 
-This is project used for studying, so this won't be as polished as actual moderation tools.
+This project is used for studying so this won't be as polished as actual moderation tools.
 
 Uses a prebuilt pytorch 2.7.1. 
 Without the prebuilds, `pip install --no-cache-dir -r requirements.txt` will probably run for more than an hour. I stopped trying at 1hr 40 minutes so I'm unsure if it would take more than 2. I just rebuilt the *.whl files from an existing venv i have locally and ran `pip wheel torch -w ~/torch-wheel`. The contents of that is what you see on `prebuilds` folder.

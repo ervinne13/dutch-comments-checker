@@ -31,6 +31,6 @@ class CheckedCommentResponse:
             "translation": self.translation,
             "spam": self.spam,
             "toxicity": self.toxicity,
-            "flagged_reason": self.flagged_reason,
-            "flagged_for_moderation": self.flagged_for_moderation
+            "flagged_for_moderation": self.flagged_for_moderation,
+            "flagged_reason": self.flagged_reason
         }
