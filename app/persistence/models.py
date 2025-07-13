@@ -59,14 +59,17 @@ class ToxicCommentClassification(Base):
     threat = Column(Float)
     processed_at = Column(DateTime)
 
-class LLMCommentAnalysis(Base):
-    __tablename__ = "llm_comment_analyses"
+class CommentModerationResult(Base):
+    __tablename__ = "comment_moderation_results"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     model_id = Column(Integer, ForeignKey('models.id'))
     comment_id = Column(Integer, ForeignKey('comments.id'))
-    results = Column(Text)
-    remarks = Column(Text)
+    classifier_flagged_as = Column(String(50))
+    prompt = Column(Text)
+    reasoning = Column(Text)
+    recommended_action = Column(String(50))
+    confidence = Column(Float)
     processed_at = Column(DateTime)
 
 class Comment(Base):
@@ -79,3 +82,4 @@ class Comment(Base):
     context = Column(Text, comment="Can be used for things like the article's first paragraph, or another comment that this comment is replying to. Basically our attempt to 'contextualize' this comment")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
+

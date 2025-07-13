@@ -1,7 +1,9 @@
 import logging
+from datetime import datetime, timezone
 from app.ai.dto import ScreenCommentResult
 from app.persistence.db import SessionLocal
-from app.persistence.models import Subject, Model, Comment, CommentTranslationResult, SpamCommentClassification, ToxicCommentClassification, LLMCommentAnalysis
+from app.persistence.models import Subject, Model, Comment, CommentTranslationResult, SpamCommentClassification, ToxicCommentClassification, CommentModerationResult
+from app.ai.dto import CommentModerationResult as CommentModerationResultDTO
 
 def persist_job_models(session, jobs):
     """
@@ -9,8 +11,8 @@ def persist_job_models(session, jobs):
     """
     models = {}
     for job in jobs:
-        model_type = job.model.get("type")
-        model_name = job.model.get("name")
+        model_type = job.model.type
+        model_name = job.model.name
         model = session.query(Model).filter_by(type=model_type, name=model_name).first()
         if not model:
             model = Model(type=model_type, name=model_name)
@@ -168,29 +170,6 @@ def persist_translation_result(session, job, model_id, comment_id):
         logging.info(f"Comment {comment_id} translated to {text_translation}")
     return tranlation
 
-def persist_llm_analysis(session, job, model_id, comment_id):
-    """
-    Persist or update an LLM analysis job result.
-    """
-    output = job.output or {}
-    result = session.query(LLMCommentAnalysis).filter_by(model_id=model_id, comment_id=comment_id).first()
-    if result:
-        result.results = output.get('results')
-        result.remarks = output.get('remarks')
-        session.flush()
-        logging.info(f"Updated LLM analysis for comment {comment_id}")
-    else:
-        result = LLMCommentAnalysis(
-            model_id=model_id,
-            comment_id=comment_id,
-            results=output.get('results'),
-            remarks=output.get('remarks')
-        )
-        session.add(result)
-        session.flush()
-        logging.info(f"Comment {comment_id} was processed by the LLM model")
-    return result
-
 def persist_jobs(session, comment_id: int, result: ScreenCommentResult):
     # TODO persist_job_models should be temporary.
     # Ideally we're sure models exist, but we upsert for now
@@ -205,8 +184,6 @@ def persist_jobs(session, comment_id: int, result: ScreenCommentResult):
                 persist_spam_classification(session, job, model_id, comment_id)
             case "toxicity_classification":
                 persist_toxic_classification(session, job, model_id, comment_id)
-            case "llm":
-                persist_llm_analysis(session, job, model_id, comment_id)
             case "translation":
                 persist_translation_result(session, job, model_id, comment_id)
             case _:
@@ -235,11 +212,63 @@ def persist_comment_screening_result(result: ScreenCommentResult):
 
         session.commit()
         logging.info("Persistence successful.")
-        return True
+        return comment.id if comment else None
     except Exception as e:
         session.rollback()
         logging.error(f"Persistence failed: {e}")
-        return False
+        return None
     finally:
         session.close()
 
+def persist_comment_moderation_result(comment_id, result: CommentModerationResultDTO):
+    """
+    Upsert a CommentModerationResult DTO to the comment_moderation_results table.
+    If a moderation result for the same comment and model exists, update it. Otherwise, insert a new one.
+    """
+    session = SessionLocal()
+    try:
+        # Upsert model
+        model_type = result.model.type
+        model_name = result.model.name
+        model = session.query(Model).filter_by(type=model_type, name=model_name).first()
+        if not model:
+            model = Model(type=model_type, name=model_name)
+            session.add(model)
+            session.flush()
+
+        # Upsert moderation result
+        moderation = session.query(CommentModerationResult).filter_by(
+            model_id=model.id,
+            comment_id=comment_id
+        ).first()
+        if moderation:
+            moderation.prompt = result.prompt
+            moderation.reasoning = result.reasoning
+            moderation.classifier_flagged_as = result.classifier_flagged_as
+            moderation.recommended_action = result.moderation_decision
+            moderation.confidence = result.confidence
+            moderation.processed_at = datetime.now(timezone.utc)
+            session.flush()
+            logging.info(f"Updated moderation result for comment {comment_id}")
+        else:
+            moderation = CommentModerationResult(
+                model_id=model.id,
+                comment_id=comment_id,
+                prompt=result.prompt,
+                reasoning=result.reasoning,
+                classifier_flagged_as=result.classifier_flagged_as,
+                recommended_action=result.moderation_decision,
+                confidence=result.confidence,
+                processed_at=datetime.now(timezone.utc)
+            )
+            session.add(moderation)
+            session.flush()
+            logging.info(f"Saved moderation result for comment {comment_id}")
+        session.commit()
+        return moderation
+    except Exception as e:
+        session.rollback()
+        logging.error(f"Failed to persist moderation result: {e}")
+        return None
+    finally:
+        session.close()

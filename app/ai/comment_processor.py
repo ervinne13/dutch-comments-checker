@@ -26,13 +26,13 @@ def screen_comment(text: str, context: str = None, subject: str = None, subject_
             output=toxicity_result
         )
     ]
+
     return ScreenCommentResult(
         subject_id=subject_id,
         subject=subject,
         context=context,
         text=text,
         jobs=jobs,
-        
     )
 
 def translate_text(str):

@@ -10,8 +10,7 @@ app = FastAPI()
 async def check_comment(request: CommentRequest):
     result = screen_comment(request.comment, request.context, request.subject, request.subject_id)
     persist_comment_job.delay(result.dict())
-    response = CheckedCommentResponse(result)
-    return response.dict()
+    return CheckedCommentResponse(result)
 
 # Swagger Docs
 @app.get("/openapi.json", include_in_schema=False)
