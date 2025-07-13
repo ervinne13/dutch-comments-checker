@@ -11,9 +11,10 @@ Build and run with with
 make build && make models
 ```
 
-Build will take a long time, about 15-20 minutes.
-- Build mostly takes time when downloading and building torch. Would take about `[+] Building 851.8s (14/14) FINISHED` in my case.
-- Downloading the models for the classifiers takes another 5 or so minutes
+Build will take a long time, about 20-30+ minutes.
+- Build mostly takes time when downloading and building torch and downloading NVIDIA libraries (hence why i put volumes on docker compose just for caching them). Would take about `[+] Building 3240.0s (16/16) FINISHED` in my case.
+- Downloading the models for the classifiers takes another 5 or so minutes.
+
 
 Once built and models downloaded, run the thing:
 ```
@@ -67,7 +68,7 @@ sudo systemctl restart docker
 To create a new Alembic migration with a custom message, use:
 
 ```
-make migrate-revise msg="Your migration message here"
+make migrate-revise "Your migration message here"
 ```
 
 This will pass the message to Alembic and generate a migration file with your description.

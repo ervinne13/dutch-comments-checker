@@ -15,3 +15,7 @@ SQLAlchemy
 alembic
 pymysql
 python-dotenv
+
+# Background Task Processing
+celery
+redis

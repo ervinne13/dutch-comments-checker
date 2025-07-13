@@ -1,21 +1,17 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
-from typing import Optional
-from app.comment_processor import screen_comment
+from app.http.requests import CommentRequest
+from app.ai.comment_processor import screen_comment
+from app.tasks import persist_comment_job
+from app.http.responses import CheckedCommentResponse
 
 app = FastAPI()
-
-class CommentRequest(BaseModel):    
-    subject: str = Field(..., example="De overheid heeft aangekondigd dat de btw volgend jaar wordt verhoogd.")
-    # We'll use string here to take into account the possibility of uuids
-    subject_id: Optional[str] = Field(None, example="123456")
-    context: Optional[str] = Field(None, example="Ik ben het er niet mee eens.")
-    comment: str = Field(..., example="Je begrijpt er echt niets van.")
 
 @app.post("/api/v1/check_comment")
 async def check_comment(request: CommentRequest):
     result = screen_comment(request.comment)
-    return result
+    persist_comment_job.delay(result.dict())
+    response = CheckedCommentResponse(result)
+    return response.dict()
 
 # Swagger Docs
 @app.get("/openapi.json", include_in_schema=False)

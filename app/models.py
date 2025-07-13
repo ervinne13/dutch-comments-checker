@@ -18,6 +18,57 @@ class Subject(Base):
         UniqueConstraint('ext_id', name='_extid_uc'),
     )
 
+class Model(Base):
+    __tablename__ = "models"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    type = Column(String(50))  # e.g. translation, text-classification, llm
+    name = Column(String(100))
+
+class CommentTranslationResult(Base):
+    __tablename__ = "comment_translation_results"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    model_id = Column(Integer, ForeignKey('models.id'))
+    comment_id = Column(Integer, ForeignKey('comments.id'))
+    text_translation = Column(Text)
+    context_translation = Column(Text)
+    processed_at = Column(DateTime)
+
+class SpamCommentClassification(Base):
+    __tablename__ = "spam_comment_classifications"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    model_id = Column(Integer, ForeignKey('models.id'))
+    comment_id = Column(Integer, ForeignKey('comments.id'))
+    spam = Column(Float)
+    ham = Column(Float)
+    processed_at = Column(DateTime)
+
+class ToxicCommentClassification(Base):
+    __tablename__ = "toxic_comment_classifications"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    model_id = Column(Integer, ForeignKey('models.id'))
+    comment_id = Column(Integer, ForeignKey('comments.id'))
+    toxic = Column(Float)
+    insult = Column(Float)
+    obscene = Column(Float)
+    identity_hate = Column(Float)
+    severe_toxic = Column(Float)
+    threat = Column(Float)
+    processed_at = Column(DateTime)
+
+class LLMCommentAnalysis(Base):
+    __tablename__ = "llm_comment_analyses"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    model_id = Column(Integer, ForeignKey('models.id'))
+    comment_id = Column(Integer, ForeignKey('comments.id'))
+    results = Column(Text)
+    remarks = Column(Text)
+    processed_at = Column(DateTime)
+
 class Comment(Base):
     __tablename__ = "comments"
 
@@ -28,16 +79,5 @@ class Comment(Base):
     translanted_text = Column(Text)
     context = Column(Text, comment="Can be used for things like the article's first paragraph, or another comment that this comment is replying to. Basically our attempt to 'contextualize' this comment")
     translated_context = Column(Text)
-    spam = Column(Float)
-    ham = Column(Float)
-    toxic = Column(Float)
-    insult = Column(Float)
-    obscene = Column(Float)
-    identity_hate = Column(Float)
-    severe_toxic = Column(Float)
-    threat = Column(Float)
-    llm_escalation_results = Column(Text)
-    llm_remarks = Column(Text)
-    llm_last_processed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())

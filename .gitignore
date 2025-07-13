@@ -1,8 +1,34 @@
+# Prebuilt Torch
 prebuilt-torch-271/
 prebuilt-torch-271.zip
 
+# Python bytecode and cache
 __pycache__/
-*.py[cod]
+*.pyc
+
+# Project-local HuggingFace and pip cache
 hf_cache/
 
+# Docker volumes and sockets
+*.pid
+*.sock
+db_data/
+redis_data/
+
+# VSCode
+.vscode/
+
+# Alembic
+migrations/versions/__pycache__/
+
+# System files
+.DS_Store
+*.swp
+*.swo
+
+# Other
+*.log
+*.tmp
+
+# Environment
 .env

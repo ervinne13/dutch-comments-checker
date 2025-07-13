@@ -17,6 +17,6 @@ RUN pip install torch==2.7.1+cu118 --extra-index-url https://download.pytorch.or
 
 COPY app ./app
 COPY alembic.ini .
-COPY alembic ./alembic
+COPY migrations ./migrations
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

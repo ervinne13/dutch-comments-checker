@@ -8,10 +8,11 @@ build:
 	docker compose build
 
 models:
-	docker compose run --rm --no-deps api python3 app/load_models.py
+	docker compose run --rm --no-deps $(CONTAINER_NAME) python3 app/ai/load_models.py
 
 dev:
-	docker compose run --rm -p $(PORT):$(PORT) api uvicorn app.main:app --reload --host 0.0.0.0 --port $(PORT) --reload-dir /dcc/app
+	docker compose up -d dcc_db dcc_redis dcc_ollama
+	DEV_MODE=1 docker compose up -d dcc_api
 
 up:
 	docker compose up -d
@@ -20,19 +21,19 @@ down:
 	docker compose down
 
 migrate-revise:
-	docker exec -e PYTHONPATH=/dcc $(CONTAINER_NAME) alembic revision --autogenerate -m "$(msg)"
+	docker exec -e PYTHONPATH=/dcc $(CONTAINER_NAME) alembic revision --autogenerate -m "$(filter-out $@,$(MAKECMDGOALS))"
 
 migrate:
 	docker exec -e PYTHONPATH=/dcc $(CONTAINER_NAME) alembic upgrade head
 
 logs:
-	docker compose logs -f
+	docker compose logs -f $(filter-out $@,$(MAKECMDGOALS))
 
 clean:
 	docker compose down --volumes --remove-orphans
 	rm -rf $(PREBUILT_ZIP) $(PREBUILT_DIR) hf_cache
 
-bash:
+shell:
 	docker exec -it $(CONTAINER_NAME) bash
 
 # Aliases
