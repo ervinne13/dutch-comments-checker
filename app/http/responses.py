@@ -34,3 +34,20 @@ class CheckedCommentResponse:
             "flagged_for_moderation": self.flagged_for_moderation,
             "flagged_reason": self.flagged_reason
         }
+
+class SubjectListItemResponse:
+    def __init__(self, row):
+        self.id = row.get('id') or row.get('subject_id')
+        self.title = row.get('title') or row.get('subject_text')
+        self.comment_count = row.get('comment_count') or row.get('total_comment_count')
+        self.spam_count = row.get('spam_count') or row.get('spam_comment_count')
+        self.toxic_count = row.get('toxic_count') or row.get('toxic_comment_count')
+
+    def dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'comment_count': self.comment_count,
+            'spam_count': self.spam_count,
+            'toxic_count': self.toxic_count
+        }

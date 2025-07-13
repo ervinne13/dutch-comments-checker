@@ -4,6 +4,7 @@ from app.ai.dto import ScreenCommentResult
 from app.persistence.db import SessionLocal
 from app.persistence.models import Subject, Model, Comment, CommentTranslationResult, SpamCommentClassification, ToxicCommentClassification, CommentModerationResult
 from app.ai.dto import CommentModerationResult as CommentModerationResultDTO
+from .db import get_db
 
 def persist_job_models(session, jobs):
     """
@@ -272,3 +273,36 @@ def persist_comment_moderation_result(comment_id, result: CommentModerationResul
         return None
     finally:
         session.close()
+
+def get_comments_from_subject(subject_id: int):
+    db = get_db()
+    with db.cursor() as cursor:
+        cursor.execute('''
+            SELECT 
+                comments.id,
+                cmr.recommended_action,
+                cmr.confidence,
+                cmr.reasoning,
+                comments.text,
+                ctr.text_translation,
+                scc.spam,
+                scc.ham,
+                tcc.toxic,
+                tcc.insult,
+                tcc.obscene,
+                tcc.identity_hate,
+                tcc.severe_toxic,
+                tcc.threat
+            FROM comments
+            LEFT JOIN comment_moderation_results AS cmr ON cmr.comment_id = comments.id
+            LEFT JOIN subjects ON subjects.id = comments.subject_id
+            LEFT JOIN comment_translation_results AS ctr ON ctr.comment_id = comments.id
+            LEFT JOIN spam_comment_classifications AS scc ON scc.comment_id = comments.id
+            LEFT JOIN toxic_comment_classifications AS tcc ON tcc.comment_id = comments.id
+            WHERE comments.subject_id = %s
+            ORDER BY scc.spam DESC, tcc.toxic DESC
+        ''', (subject_id,))
+        results = cursor.fetchall()
+    return results if results else []
+
+
