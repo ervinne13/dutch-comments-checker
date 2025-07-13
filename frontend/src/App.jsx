@@ -66,7 +66,10 @@ function SubjectView() {
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/subjects/${subjectId}/comments`);
       const data = await res.json();
-      setComments(data);
+      // Only update if data actually changed
+      if (comments.length !== data.length || comments.some((c, i) => JSON.stringify(c) !== JSON.stringify(data[i]))) {
+        setComments(data);
+      }
     } catch (err) {
       setComments([]);
     }
@@ -87,14 +90,17 @@ function SubjectView() {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Pie chart data
-  const spamData = selected ? [
-    { name: 'Spam', value: selected.spam_count || 0, color: PIE_COLORS.spam },
-    { name: 'OK', value: (selected.comment_count || 0) - (selected.spam_count || 0), color: PIE_COLORS.ham }
+  // Pie chart data based on comments, not subject summary
+  const spamCount = comments.filter(c => c.spam > 0.3).length;
+  const toxicCount = comments.filter(c => c.toxic > 0.3).length;
+  const commentCount = comments.length;
+  const spamData = commentCount > 0 ? [
+    { name: 'Spam', value: spamCount, color: PIE_COLORS.spam },
+    { name: 'OK', value: commentCount - spamCount, color: PIE_COLORS.ham }
   ] : [];
-  const toxicData = selected ? [
-    { name: 'Toxic', value: selected.toxic_count || 0, color: PIE_COLORS.toxic },
-    { name: 'OK', value: (selected.comment_count || 0) - (selected.toxic_count || 0), color: PIE_COLORS.ham }
+  const toxicData = commentCount > 0 ? [
+    { name: 'Toxic', value: toxicCount, color: PIE_COLORS.toxic },
+    { name: 'OK', value: commentCount - toxicCount, color: PIE_COLORS.ham }
   ] : [];
 
   return (
@@ -129,7 +135,12 @@ function SubjectView() {
       <Box sx={{ flex: 1, p: 3 }}>
         {selected ? (
           <>
-            <Typography level="h2" sx={{ mb: 2 }}>{selected.title}</Typography>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+              <Typography level="h4" sx={{ flexGrow: 1 }}>{selected.title}</Typography>
+              <IconButton size="sm" sx={{ ml: 1 }} onClick={() => { fetchSubjects(); fetchComments(selected.id); }} disabled={commentsLoading || loading}>
+                <RefreshIcon />
+              </IconButton>
+            </Box>
             <Box sx={{ display: 'flex', gap: 4, mb: 4 }}>
               <Box>
                 <Typography level="title-md" sx={{ mb: 1 }}><PieChartIcon fontSize="small" /> Spam</Typography>
@@ -172,77 +183,75 @@ function SubjectView() {
                     </tr>
                   </thead>
                   <tbody>
-                    {comments.map((c, idx) => (
-                      <>
-                        <tr key={c.id || idx}>
-                          <td style={{ width: '80%' }}>{c.text}</td>
-                          <td><Score value={c.spam} /></td>
-                          <td><Score value={c.toxic} /></td>
-                          <td>
-                            <IconButton size="sm" onClick={() => toggleRow(c.id)}>
-                              {expandedRows[c.id] ? <ExpandMoreIcon /> : <ChevronRightIcon />}
-                            </IconButton>
-                          </td>
-                        </tr>
-                        {expandedRows[c.id] && (
-                          <tr>
-                            <td colSpan={4}>
-                              <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: 2 }}>
-                                <Table size="sm" sx={{ mt: 2, minWidth: 600 }}>
-                                  <thead>
-                                    <tr>
-                                      <th>Spam</th>
-                                      <th>Ham</th>
-                                      <th>Toxic</th>
-                                      <th>Insult</th>
-                                      <th>Obscene</th>
-                                      <th>Identity Hate</th>
-                                      <th>Severe Toxic</th>
-                                      <th>Threat</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <tr>
-                                      {[c.spam, c.ham, c.toxic, c.insult, c.obscene, c.identity_hate, c.severe_toxic, c.threat].map((score, i) => (
-                                        <td key={i} style={{ color: score >= 0.7 ? '#F44336' : score > 0.3 ? '#FFA726' : undefined, fontWeight: score > 0.3 ? 'bold' : 'normal' }}>
-                                          {score}
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  </tbody>
-                                </Table>
+                    {comments.map((c, idx) => [
+                      <tr key={c.id || idx}>
+                        <td style={{ width: '80%' }}>{c.text}</td>
+                        <td><Score value={c.spam} /></td>
+                        <td><Score value={c.toxic} /></td>
+                        <td>
+                          <IconButton size="sm" onClick={() => toggleRow(c.id)}>
+                            {expandedRows[c.id] ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+                          </IconButton>
+                        </td>
+                      </tr>,
+                      expandedRows[c.id] && (
+                        <tr key={c.id + '-details'}>
+                          <td colSpan={4}>
+                            <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: 2 }}>
+                              <Table size="sm" sx={{ mt: 2, minWidth: 600 }}>
+                                <thead>
+                                  <tr>
+                                    <th>Spam</th>
+                                    <th>Ham</th>
+                                    <th>Toxic</th>
+                                    <th>Insult</th>
+                                    <th>Obscene</th>
+                                    <th>Identity Hate</th>
+                                    <th>Severe Toxic</th>
+                                    <th>Threat</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    {[c.spam, c.ham, c.toxic, c.insult, c.obscene, c.identity_hate, c.severe_toxic, c.threat].map((score, i) => (
+                                      <td key={i} style={{ color: score >= 0.7 ? '#F44336' : score > 0.3 ? '#FFA726' : undefined, fontWeight: score > 0.3 ? 'bold' : 'normal' }}>
+                                        {score}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                </tbody>
+                              </Table>
 
-                                <Box sx={{ mb: 2 }}>
-                                  <Typography level="body-md"><b>Translation:</b></Typography>
-                                  <Typography level="body-md"  sx={{ mb: 1 }}>{c.text_translation}</Typography>
-                                  {(c.spam > 0.3 || c.toxic > 0.3) && (
-                                    <>
-                                      <Typography level="body-md"><b>Llama3 Remarks:</b></Typography>
-                                      <Typography level="body-md" sx={{ mb: 1 }}>{c.reasoning}</Typography>
-                                      <Typography level="body-md"><b>Recommended Action:</b> {c.recommended_action}</Typography>
-                                      <Typography level="body-md"><b>Confidence:</b> {c.confidence}</Typography>
-                                    </>
-                                  )}
-                                </Box>
-
+                              <Box sx={{ mb: 2 }}>
+                                <Typography level="body-md"><b>Translation:</b></Typography>
+                                <Typography level="body-md" sx={{ mb: 1 }}>{c.text_translation}</Typography>
                                 {(c.spam > 0.3 || c.toxic > 0.3) && (
-                                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
-                                    <IconButton variant="soft" color="warning" size="md" sx={{ px: 2 }}>
-                                      Disagree with LLM Decision (Restore Comment)
-                                    </IconButton>
-                                    <IconButton variant="soft" color="danger" size="md" sx={{ px: 2 }}>
-                                      Mute User
-                                    </IconButton>
-                                  </Box>
+                                  <>
+                                    <Typography level="body-md"><b>Llama3 Remarks:</b></Typography>
+                                    <Typography level="body-md" sx={{ mb: 1 }}>{c.reasoning}</Typography>
+                                    <Typography level="body-md"><b>Recommended Action:</b> {c.recommended_action}</Typography>
+                                    <Typography level="body-md"><b>Confidence:</b> {c.confidence}</Typography>
+                                  </>
                                 )}
+                              </Box>
+
+                              {(c.spam > 0.3 || c.toxic > 0.3) && (
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+                                  <IconButton variant="soft" color="warning" size="md" sx={{ px: 2 }}>
+                                    Disagree with LLM Decision (Restore Comment)
+                                  </IconButton>
+                                  <IconButton variant="soft" color="danger" size="md" sx={{ px: 2 }}>
+                                    Mute User
+                                  </IconButton>
+                                </Box>
+                              )}
                             </Box>
                           </td>
                         </tr>
-                      )}
-                    </>
-                  ))}
-                </tbody>
-              </Table>
+                      )
+                    ])}
+                  </tbody>
+                </Table>
               </>
             )}
           </>
