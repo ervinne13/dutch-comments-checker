@@ -105,11 +105,14 @@ This will pass the message to Alembic and generate a migration file with your de
 ## Major TODOs
 
 - Moderation UUID for comments flagged for moderation. This is so we have an easy way for clients to asynchronously check moderation results
+- Instead of `llama3`, maybe something like [HuggingFaceTB/SmolLM3-3B](https://huggingface.co/HuggingFaceTB/SmolLM3-3B) is good enough for what we're doing. Or maybe find a dutch specific. But the thing works just fine, just need some more testing I think:
+
+![SmolLM3-3B-trial](docs/SmolLM3-3B-trial.png)
 
 ## Developer Notes
 
+**Testing**
 After sending several comments to it, use the query to check them all:
-
 ```
 SELECT 
 	comments.id,
@@ -135,3 +138,4 @@ LEFT JOIN comment_translation_results AS ctr ON ctr.comment_id = comments.id
 LEFT JOIN spam_comment_classifications AS scc ON scc.comment_id = comments.id
 LEFT JOIN toxic_comment_classifications AS tcc ON tcc.comment_id = comments.id
 ```
+
