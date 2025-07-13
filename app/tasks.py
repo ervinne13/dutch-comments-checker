@@ -19,6 +19,6 @@ def persist_comment_job(result_dict):
         else:
             logging.info(f"Comment {comment_id} passed screening without flags.")
     else:
-        logging.warning("No comment persisted, we can't proceed wit hpossible escalation.")
+        logging.warning("No comment persisted, we can't proceed with possible escalation.")
 
     return True

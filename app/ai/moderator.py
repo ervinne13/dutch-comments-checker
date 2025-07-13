@@ -112,7 +112,8 @@ def moderate_comment_with_llm(comment_id: int, screening_result: ScreenCommentRe
         )
     except Exception as e:
         logging.error(f"LLM did not return valid JSON: {e}")
-        return None
+        # Let it crash
+        raise e
 
 def get_translated_comment(result: ScreenCommentResult):
     for job in result.jobs:
@@ -120,9 +121,9 @@ def get_translated_comment(result: ScreenCommentResult):
             return job.output.get("translation")
     return None
 
-def translate_text(str):
+def translate_text(text):
     translator = get_translation_model()
-    translation = translator(str)[0]['translation_text']
+    translation = translator(text)[0]['translation_text']
     return translation
 
 def extract_json(text):

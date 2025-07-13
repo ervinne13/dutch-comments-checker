@@ -35,7 +35,7 @@ def screen_comment(text: str, context: str = None, subject: str = None, subject_
         jobs=jobs,
     )
 
-def translate_text(str):
+def translate_text(text):
     translator = get_translation_model()
-    translation = translator(str)[0]['translation_text']
+    translation = translator(text)[0]['translation_text']
     return translation
