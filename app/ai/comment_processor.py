@@ -13,7 +13,7 @@ def screen_comment(text: str, context: str = None, subject: str = None, subject_
         ScreenCommentJob(
             type="translation",
             model={"type": "translation", "name": "Helsinki-NLP/opus-mt-nl-en"},
-            output={"translation_text": translation}
+            output={"translation": translation}
         ),
         ScreenCommentJob(
             type="spam_classification",
