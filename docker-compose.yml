@@ -1,23 +1,28 @@
-version: '3.8'
-
 services:
-  api:
+  dcc_api:
     build: .
-    container_name: dcc_dutch_comment_checker
+    container_name: dcc_api
     ports:
       - "${API_PORT:-8000}:8000"
     volumes:
       - ${HF_CACHE_PATH:-./hf_cache}:/root/.cache/huggingface
-      - ./app:/dcc/app
+      - .:/dcc
+      - ~/.cache/pip:/root/.cache/pip
     environment:
       - HF_HOME=/root/.cache/huggingface
+      - MYSQL_HOST=${MYSQL_HOST:-dcc_db}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_USER=${MYSQL_USER:-dutchman}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-password}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-dutch_comments}
+      - DEV_MODE=${DEV_MODE:-0}
     depends_on:
       - dcc_ollama
+      - dcc_db
+      - dcc_redis
     restart: unless-stopped
     working_dir: /dcc
-    # Prevents that pesky Downloading torch-2.7.1-cp310-cp310-manylinux_2_28_x86_64.whl (821.2 MB)
-    # Which pretty much takes forever to build
-    # This should ensure we'll be working with the GPU version
+    command: bash shell/api_entrypoint.sh
     deploy:
       resources:
         reservations:
@@ -39,3 +44,32 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+
+  dcc_db:
+    image: mysql:8.0
+    container_name: dcc_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-example}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-dutch_comments}
+      MYSQL_USER: ${MYSQL_USER:-dutchman}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  dcc_redis:
+    image: redis:7
+    container_name: dcc_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  db_data:
+    driver: local
+  redis_data:
+    driver: local

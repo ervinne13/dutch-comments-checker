@@ -1,31 +1,18 @@
-IMAGE_NAME = dutch_comment_checker
-CONTAINER_NAME = dutch_comment_checker
+IMAGE_NAME = dcc_api
+CONTAINER_NAME = dcc_api
 PORT = 8000
-# TODO: Move away from using prebuilt torch wheels later
-PREBUILT_ZIP = prebuilt-torch-271.zip
-PREBUILT_DIR = prebuilt-torch-271
-GDRIVE_URL = https://drive.google.com/uc?export=download&id=1t2UqKx8kVta0DaAj8IHPBr7AWF34wA64
 
-.PHONY: all download build run start stop clean models up down logs
-
-download:
-	@echo "Checking for existing prebuilt directory..."
-	@if [ ! -d "$(PREBUILT_DIR)" ]; then \
-		echo "Downloading prebuilt torch wheel..."; \
-		curl -L -o $(PREBUILT_ZIP) "$(GDRIVE_URL)"; \
-		unzip -o $(PREBUILT_ZIP) -d $(PREBUILT_DIR); \
-	else \
-		echo "$(PREBUILT_DIR) already exists, skipping download."; \
-	fi
+.PHONY: all build run start stop clean models up down logs
 
 build:
 	docker compose build
 
 models:
-	docker compose run --rm --no-deps api python3 app/load_models.py
+	docker compose run --rm --no-deps $(CONTAINER_NAME) python3 app/ai/load_models.py
 
 dev:
-	docker compose run --rm -p $(PORT):$(PORT) api uvicorn app.main:app --reload --host 0.0.0.0 --port $(PORT) --reload-dir /dcc/app
+	docker compose up -d dcc_db dcc_redis dcc_ollama
+	DEV_MODE=1 docker compose up -d dcc_api
 
 up:
 	docker compose up -d
@@ -33,12 +20,21 @@ up:
 down:
 	docker compose down
 
+migrate-revise:
+	docker exec -e PYTHONPATH=/dcc $(CONTAINER_NAME) alembic revision --autogenerate -m "$(filter-out $@,$(MAKECMDGOALS))"
+
+migrate:
+	docker exec -e PYTHONPATH=/dcc $(CONTAINER_NAME) alembic upgrade head
+
 logs:
-	docker compose logs -f
+	docker compose logs -f $(filter-out $@,$(MAKECMDGOALS))
 
 clean:
 	docker compose down --volumes --remove-orphans
 	rm -rf $(PREBUILT_ZIP) $(PREBUILT_DIR) hf_cache
+
+shell:
+	docker exec -it $(CONTAINER_NAME) bash
 
 # Aliases
 
