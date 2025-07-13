@@ -1,5 +1,6 @@
 IMAGE_NAME = dcc_api
 CONTAINER_NAME = dcc_api
+OLLAMA_CONTAINER_NAME = dcc_ollama
 PORT = 8000
 
 .PHONY: all build run start stop clean models up down logs
@@ -8,6 +9,7 @@ build:
 	docker compose build
 
 models:
+	docker compose run --rm --no-deps $(OLLAMA_CONTAINER_NAME) ollama pull llama3
 	docker compose run --rm --no-deps $(CONTAINER_NAME) python3 app/ai/load_models.py
 
 dev:
