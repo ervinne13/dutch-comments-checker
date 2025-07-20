@@ -15,6 +15,7 @@ SQLAlchemy
 alembic
 pymysql
 python-dotenv
+cryptography
 
 # Background Task Processing
 celery

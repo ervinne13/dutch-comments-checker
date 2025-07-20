@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Article Viewer</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; background: #f9f9f9; }
+    article-viewer { display: block; max-width: 700px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+    .comments { margin-top: 32px; }
+    comment-list { display: block; }
+    comment-item { display: block; margin-bottom: 24px; }
+    .comment-text { background: #f1f1f1; padding: 12px; border-radius: 6px; }
+    .comment-meta { font-size: 0.9em; color: #888; margin-bottom: 4px; }
+    .add-comment { margin-top: 24px; display: flex; gap: 8px; }
+    .add-comment input, .add-comment textarea { flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+    .add-comment button { padding: 8px 16px; border-radius: 4px; border: none; background: #1976d2; color: #fff; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <article-viewer></article-viewer>
+  <script>
+    class ArticleViewer extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({mode: 'open'});
+        this.shadowRoot.innerHTML = `
+          <h1>Sample Article Title</h1>
+          <p>This is a sample article body. You can replace this with real content.</p>
+          <div class="comments">
+            <h2>Comments</h2>
+            <comment-list></comment-list>
+            <div class="add-comment">
+              <input type="text" placeholder="Your name" id="name" />
+              <textarea placeholder="Add a comment..." id="text"></textarea>
+              <button id="addBtn">Add</button>
+            </div>
+          </div>
+        `;
+      }
+      connectedCallback() {
+        this.list = this.shadowRoot.querySelector('comment-list');
+        this.shadowRoot.getElementById('addBtn').onclick = () => {
+          const name = this.shadowRoot.getElementById('name').value.trim();
+          const text = this.shadowRoot.getElementById('text').value.trim();
+          if (name && text) {
+            this.list.addComment({ name, text, date: new Date().toLocaleString() });
+            this.shadowRoot.getElementById('name').value = '';
+            this.shadowRoot.getElementById('text').value = '';
+          }
+        };
+      }
+    }
+    customElements.define('article-viewer', ArticleViewer);
+
+    class CommentList extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({mode: 'open'});
+        this.comments = [];
+        this.render();
+      }
+      addComment(comment) {
+        this.comments.push(comment);
+        this.render();
+      }
+      render() {
+        this.shadowRoot.innerHTML = this.comments.map(c => `
+          <comment-item>
+            <div class="comment-meta">${c.name} &bull; ${c.date}</div>
+            <div class="comment-text">${c.text}</div>
+          </comment-item>
+        `).join('');
+      }
+    }
+    customElements.define('comment-list', CommentList);
+  </script>
+</body>
+</html>

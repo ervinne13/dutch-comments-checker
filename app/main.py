@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.http.requests import CommentRequest
 from app.ai.comment_processor import screen_comment
@@ -17,11 +18,24 @@ MODERATION_API_PREFIXES = [
 
 class ModerationCORSMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        # Handle preflight OPTIONS for check_comment
+        if request.method == "OPTIONS" and request.url.path == "/api/v1/check_comment":
+            response = JSONResponse({})
+            response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
+            response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+            return response
+
         response = await call_next(request)
         # Only add CORS for moderation frontend APIs
         if any(request.url.path.startswith(prefix) for prefix in MODERATION_API_PREFIXES):
             response.headers["Access-Control-Allow-Origin"] = "*"
             response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+        # Allow CORS for check_comment specifically for localhost:5173
+        if request.url.path == "/api/v1/check_comment":
+            response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
+            response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
             response.headers["Access-Control-Allow-Headers"] = "*"
         return response
 
